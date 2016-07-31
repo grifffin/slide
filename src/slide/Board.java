@@ -22,9 +22,11 @@ public class Board implements Serializable
 
     /**
      * This stack holds move objects after they are executed. This allows them
-     * to be undone in the reverse order they were originally executed in.
+     * to be undone in the reverse order they were originally executed in. It
+     * stores a stack of stacks so that one action from the user can encompass
+     * several Moves.
      */
-    private Stack<Move> moves;
+    private Stack<Stack<Move>> moves;
 
     /**
      * Instantiates a new 2d Integer array for tiles and a new Stack for moves.
@@ -44,7 +46,7 @@ public class Board implements Serializable
     }
 
     /**
-     * Switches two tiles and adds the move to moves.
+     * Switches two tiles.
      *
      * @param move - defines the two tiles being swapped.
      */
@@ -53,7 +55,69 @@ public class Board implements Serializable
         Integer temp = tiles[move.getX1()][move.getY1()];
         tiles[move.getX1()][move.getY1()] = tiles[move.getX2()][move.getY2()];
         tiles[move.getX2()][move.getY2()] = temp;
-        moves.push(move);
+    }
+
+    /**
+     * Executes the moves required to move a group of tiles in the direction of
+     * the blank space (the null tile). To work, the position of the blank space
+     * and a designated tile are passed in. All the tiles between these two, and
+     * the designated tile, move one position toward the blank space and the
+     * blank space gets moved to the position of the designated tile. This
+     * entire shift is returned as a stack of moves, to be added to moves, so
+     * that this whole move can be undone with only one call to undo(). This
+     * method will return an empty stack if the two passed in positions are on a
+     * separate row and a separate column or they are the same tile. i.e. The
+     * two passed in tiles must shared one and only one coordinate(logical XOR).
+     *
+     * @param x
+     * @param y
+     * @param blankX
+     * @param blankY
+     * @return - A stack of every move performed
+     */
+    private Stack<Move> multiMove(int x, int y, int blankX, int blankY)
+    {
+        Stack<Move> rtnval = new Stack<>();
+        if (x == blankX)
+        {
+            if (y < blankY)
+            {
+                for (int j = blankY; j > y; --j)
+                {
+                    Move m = new Move(x, j, x, j - 1);
+                    executeMove(m);
+                    rtnval.push(m);
+                }
+            } else
+            {
+                for (int j = blankY; j < y; ++j)
+                {
+                    Move m = new Move(x, j, x, j + 1);
+                    executeMove(m);
+                    rtnval.push(m);
+                }
+            }
+        } else if (y == blankY)
+        {
+            if (x < blankX)
+            {
+                for (int i = blankX; i > x; --i)
+                {
+                    Move m = new Move(i, y, i - 1, y);
+                    executeMove(m);
+                    rtnval.push(m);
+                }
+            } else
+            {
+                for (int i = blankX; i < x; ++i)
+                {
+                    Move m = new Move(i, y, i + 1, y);
+                    executeMove(m);
+                    rtnval.push(m);
+                }
+            }
+        }
+        return rtnval;
     }
 
     /**
@@ -161,8 +225,10 @@ public class Board implements Serializable
     /**
      * The basis of user interaction. A tile is passed in, and if it is next to
      * the empty space (the null tile) the two switch positions (the equivalent
-     * of sliding a tile to the empty space in real life). Also, if a move is
-     * made, checkSolved() is called and its result is returned.
+     * of sliding a tile to the empty space in real life). If the queried tile
+     * isn't next to the blank space, a check is made to see if multiMove can be
+     * executed. Also, if a move is made, checkSolved() is called and its result
+     * is returned.
      *
      * @param x - the horizontal index of the tile.
      * @param y - the vertical index of the tile.
@@ -173,23 +239,55 @@ public class Board implements Serializable
         boolean rtnbool = false;
         if (x > 0 && tiles[x - 1][y] == null)
         {
-            executeMove(new Move(x, y, x - 1, y));
+            Move m = new Move(x, y, x - 1, y);
+            executeMove(m);
+            Stack<Move> s = new Stack();
+            s.push(m);
+            moves.push(s);
             rtnbool = checkSolved();
-        }
-        if (y > 0 && tiles[x][y - 1] == null)
+        } else if (y > 0 && tiles[x][y - 1] == null)
         {
-            executeMove(new Move(x, y, x, y - 1));
+            Move m = new Move(x, y, x, y - 1);
+            executeMove(m);
+            Stack<Move> s = new Stack();
+            s.push(m);
+            moves.push(s);
             rtnbool = checkSolved();
-        }
-        if (x < tiles.length - 1 && tiles[x + 1][y] == null)
+        } else if (x < tiles.length - 1 && tiles[x + 1][y] == null)
         {
-            executeMove(new Move(x, y, x + 1, y));
+            Move m = new Move(x, y, x + 1, y);
+            executeMove(m);
+            Stack<Move> s = new Stack();
+            s.push(m);
+            moves.push(s);
             rtnbool = checkSolved();
-        }
-        if (y < tiles[0].length - 1 && tiles[x][y + 1] == null)
+        } else if (y < tiles[0].length - 1 && tiles[x][y + 1] == null)
         {
-            executeMove(new Move(x, y, x, y + 1));
+            Move m = new Move(x, y, x, y + 1);
+            executeMove(m);
+            Stack<Move> s = new Stack();
+            s.push(m);
+            moves.push(s);
             rtnbool = checkSolved();
+        } else
+        {
+            int blankX = -1;
+            int blankY = -1;
+            for (int j = 0; j < tiles[0].length; ++j)
+            {
+                for (int i = 0; i < tiles.length && blankX == -1; ++i)
+                {
+                    if (tiles[i][j] == null)
+                    {
+                        blankX = i;
+                        blankY = j;
+                    }
+                }
+            }
+            if ((x == blankX) ^ (y == blankY))
+            {
+                moves.push(multiMove(x, y, blankX, blankY));
+            }
         }
         return rtnbool;
     }
@@ -202,8 +300,11 @@ public class Board implements Serializable
      */
     public void undo()
     {
-        executeMove(moves.pop());
-        moves.pop();
+        Stack<Move> undoStack = moves.pop();
+        while (!undoStack.isEmpty())
+        {
+            executeMove(undoStack.pop());
+        }
     }
 
     /**

@@ -10,16 +10,17 @@ import java.util.Scanner;
 
 /**
  * A text based interface for the slide puzzle. To use, first enter the
- * dimensions of the puzzle, horizontal then vertical, separated by a space. To
- * make a move, select the tile that you want to shift by entering its
- * coordinates, horizontal then vertical, separated by a space. The coordinates
- * start at zero, not one. These commands can also be used in any order until
- * the puzzle is solved: Undo - undoes your last action. You can use this more
- * than once to undo more than one action. Save - This saves the current state
- * of the puzzle and your previous moves to a file with the extension .sld. The
- * name of the file is prompted from you. Load - This overwrites the current
- * state of the board with the state serialized in an .sld. You must create a
- * new puzzle before you can load a saved one.
+ * dimensions of the puzzle, horizontal then vertical, separated by a space.
+ * Creating a puzzle smaller than 3x2 could cause problems, including the
+ * program crashing. To make a move, select the tile that you want to shift by
+ * entering its coordinates, horizontal then vertical, separated by a space. The
+ * coordinates start at zero, not one. These commands can also be used in any
+ * order until the puzzle is solved: Undo - undoes your last action. You can use
+ * this more than once to undo more than one action. Save - This saves the
+ * current state of the puzzle and your previous moves to a file with the
+ * extension .sld. The name of the file is prompted from you. Load - This
+ * overwrites the current state of the board with the state serialized in an
+ * .sld. You must create a new puzzle before you can load a saved one.
  *
  * @author Griffin
  */
