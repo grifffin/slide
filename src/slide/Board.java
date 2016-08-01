@@ -129,7 +129,7 @@ public class Board implements Serializable
      * could give the player a slight edge. This method also clears moves,
      * because this method randomly swaps tiles with executeMove().
      */
-    public void Shuffle()
+    public void shuffle()
     {
         while (checkSolved())
         {
@@ -151,10 +151,22 @@ public class Board implements Serializable
         {
             if (tiles[0][0] == null)
             {
-                executeMove(new Move(1, 0, 2, 0));
-            } else if (tiles[0][1] == null)
+                if (tiles.length < 3)
+                {
+                    shuffle();
+                } else
+                {
+                    executeMove(new Move(1, 0, 2, 0));
+                }
+            } else if (tiles[1][0] == null)
             {
-                executeMove(new Move(0, 0, 2, 0));
+                if (tiles.length < 3)
+                {
+                    shuffle();
+                } else
+                {
+                    executeMove(new Move(0, 0, 2, 0));
+                }
             } else
             {
                 executeMove(new Move(0, 0, 1, 0));
@@ -287,6 +299,7 @@ public class Board implements Serializable
             if ((x == blankX) ^ (y == blankY))
             {
                 moves.push(multiMove(x, y, blankX, blankY));
+                rtnbool = checkSolved();
             }
         }
         return rtnbool;

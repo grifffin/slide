@@ -33,7 +33,7 @@ public class Edge
         System.out.println("Enter the dimensions of the puzzle:");
         String[] dimensions = input.nextLine().split(" ");
         Board board = new Board(Integer.parseInt(dimensions[0]), Integer.parseInt(dimensions[1]));
-        board.Shuffle();
+        board.shuffle();
         System.out.println("\n" + board + "\n");
         boolean solved = false;
         while (!solved)
