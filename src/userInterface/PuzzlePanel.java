@@ -2,6 +2,7 @@ package userInterface;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import javax.swing.JButton;
 import slide.Board;
 
@@ -27,8 +28,8 @@ public class PuzzlePanel extends javax.swing.JPanel
     /**
      * Creates new form PuzzlePanel
      *
-     * @param main - the SlideUI displaying this
-     * @param board - This board
+     * @param main The SlideUI displaying this
+     * @param board This board
      */
     public PuzzlePanel(SlideUI main, Board board)
     {
@@ -57,6 +58,17 @@ public class PuzzlePanel extends javax.swing.JPanel
                 this.add(btn);
             }
         }
+        main.setUndoEnabled(!checkUndo());
+    }
+    
+    public void save(File file)
+    {
+        serializer.Serializer.serializeBoard(file, board);
+    }
+    
+    public void XMLSave(File file)
+    {
+        serializer.Serializer.XMLSerializeBoard(file, board);
     }
 
     /**
@@ -64,7 +76,8 @@ public class PuzzlePanel extends javax.swing.JPanel
      * can be made. Also sets the undo button of main enabled if it can, and
      * calls main's displayVictory if a move was made that solved the puzzle
      *
-     * @param evt
+     * @param evt The action command of each button's ActionEvent has been set
+     * to the coordinates of the button.
      */
     private void buttonClicked(ActionEvent evt)
     {
@@ -110,7 +123,7 @@ public class PuzzlePanel extends javax.swing.JPanel
     /**
      * Checks to see if a move can be undone.
      * 
-     * @return - True if a move can be done, false if not.
+     * @return True if a move can be done, false if not.
      */
     private boolean checkUndo()
     {

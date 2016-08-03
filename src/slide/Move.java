@@ -20,10 +20,10 @@ public class Move implements Serializable
 
     /**
      * Initializes the fields.
-     * @param x1 - horizontal index of the first tile.
-     * @param y1 - vertical index of the first tile.
-     * @param x2 - horizontal index of the second tile.
-     * @param y2 - vertical index of the second tile.
+     * @param x1 Horizontal index of the first tile
+     * @param y1 Vertical index of the first tile
+     * @param x2 Horizontal index of the second tile
+     * @param y2 Vertical index of the second tile
      */
     public Move(int x1, int y1, int x2, int y2)
     {

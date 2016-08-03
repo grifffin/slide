@@ -16,19 +16,19 @@ public class NewPuzzleWindow extends javax.swing.JFrame
 {
     
     /**
-     * main is the SlideUI that instantiated this. It is called back when this
+     * slideUI is the SlideUI that instantiated this. It is called back when this
      * window closes.
      */
-    private SlideUI main;
+    private final SlideUI slideUI;
 
     /**
      * Creates new form NewPuzzleWindow
      * 
-     * @param main - SlideUI that is called back once this window closes.
+     * @param main SlideUI that is called back once this window closes.
      */
     public NewPuzzleWindow(SlideUI main)
     {
-        this.main = main;
+        this.slideUI = main;
         initComponents();
         setTextFieldListeners();
     }
@@ -160,7 +160,7 @@ public class NewPuzzleWindow extends javax.swing.JFrame
     {//GEN-HEADEREND:event_createPuzzleButtonActionPerformed
         this.setVisible(false);
         this.dispose();
-        main.createPuzzle(Integer.parseInt(widthTextField.getText()),
+        slideUI.createPuzzle(Integer.parseInt(widthTextField.getText()),
                 Integer.parseInt(heightTextField.getText()));
     }//GEN-LAST:event_createPuzzleButtonActionPerformed
 

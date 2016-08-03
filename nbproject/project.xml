@@ -12,7 +12,13 @@
             </test-roots>
         </data>
         <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
+            <word>button's</word>
+            <word>deserialization</word>
+            <word>deserialize</word>
+            <word>Deserializer</word>
+            <word>deserializes</word>
             <word>main's</word>
+            <word>serializer</word>
             <word>sld</word>
         </spellchecker-wordlist>
     </configuration>

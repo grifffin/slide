@@ -1,5 +1,7 @@
 package userInterface;
 
+import java.io.File;
+
 /**
  * SlideUI is the main class for the user interface. It contains the menus and
  * the PuzzlePanel.
@@ -19,9 +21,52 @@ public class SlideUI extends javax.swing.JFrame
     }
 
     /**
+     * Loads a board from a file serialized by save(File file) and passes it to
+     * puzzlePanel.
+     *
+     * @param file The file to read from
+     */
+    public void load(File file)
+    {
+        setPuzzle(serializer.Deserializer.deserializeBoard(file));
+    }
+
+    /**
+     * Byte serializes the board by calling a method in PuzzlePanel that calls
+     * serializer.Serializer.
+     *
+     * @param file The file to write to
+     */
+    public void save(File file)
+    {
+        puzzlePanel.save(file);
+    }
+    /**
+     * Loads a board from an XML file and passes it to
+     * puzzlePanel.
+     *
+     * @param file The file to read from
+     */
+    public void XMLLoad(File file)
+    {
+        setPuzzle(serializer.Deserializer.XMLDeserializeBoard(file));
+    }
+    
+    /**
+     * Serializes the board to an XML by calling a method in PuzzlePanel that
+     * calls serializer.Serializer.
+     *
+     * @param file The file to write to
+     */
+    public void XMLSave(File file)
+    {
+        puzzlePanel.XMLSave(file);
+    }
+
+    /**
      * This method sets undoMenuItem either enabled or disabled.
      *
-     * @param bool - True to set undoMenuItem enabled.
+     * @param bool True to set undoMenuItem enabled.
      */
     public void setUndoEnabled(boolean bool)
     {
@@ -40,19 +85,32 @@ public class SlideUI extends javax.swing.JFrame
     }
 
     /**
-     * This instantiates a new PuzzlePanel, removes any old one, and adds the
-     * new one to this form.
+     * This creates a random Board and passes it to puzzlePanel.
      *
-     * @param x - the width of the board that is created by the new PuzzlePanel
-     * @param y - the height of the board that is created by the new PuzzlePanel
+     * @param x The width of the board that is created by the new PuzzlePanel
+     * @param y The height of the board that is created by the new PuzzlePanel
      */
     void createPuzzle(int x, int y)
     {
         slide.Board board = new slide.Board(x, y);
         board.shuffle();
-        if(puzPan != null)
-            getContentPane().remove(puzPan);
-        puzPan = (PuzzlePanel) getContentPane().add(new PuzzlePanel(this, board));
+        setPuzzle(board);
+    }
+
+    /**
+     * This takes in a Board and sets puzzlePanel's board to this new one.
+     * 
+     * @param board The new board
+     */
+    void setPuzzle(slide.Board board)
+    {
+        if (puzzlePanel != null)
+        {
+            getContentPane().remove(puzzlePanel);
+        }
+        puzzlePanel = (PuzzlePanel) getContentPane().add(new PuzzlePanel(this, board));
+        savePuzzleButton.setEnabled(true);
+        XMLSavePuzzleButton.setEnabled(true);
         validate();
     }
 
@@ -69,6 +127,12 @@ public class SlideUI extends javax.swing.JFrame
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         newPuzzleMenuItem = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        savePuzzleButton = new javax.swing.JMenuItem();
+        loadPuzzleButton = new javax.swing.JMenuItem();
+        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        XMLSavePuzzleButton = new javax.swing.JMenuItem();
+        XMLLoadPuzzleButton = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();
         undoMenuItem = new javax.swing.JMenuItem();
 
@@ -88,6 +152,50 @@ public class SlideUI extends javax.swing.JFrame
             }
         });
         fileMenu.add(newPuzzleMenuItem);
+        fileMenu.add(jSeparator1);
+
+        savePuzzleButton.setText("Save Puzzle to .sld");
+        savePuzzleButton.setEnabled(false);
+        savePuzzleButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                savePuzzleButtonActionPerformed(evt);
+            }
+        });
+        fileMenu.add(savePuzzleButton);
+
+        loadPuzzleButton.setText("Load Puzzle from .sld");
+        loadPuzzleButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                loadPuzzleButtonActionPerformed(evt);
+            }
+        });
+        fileMenu.add(loadPuzzleButton);
+        fileMenu.add(jSeparator2);
+
+        XMLSavePuzzleButton.setText("Save Puzzle to XML");
+        XMLSavePuzzleButton.setEnabled(false);
+        XMLSavePuzzleButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                XMLSavePuzzleButtonActionPerformed(evt);
+            }
+        });
+        fileMenu.add(XMLSavePuzzleButton);
+
+        XMLLoadPuzzleButton.setText("Load Puzzle from XML");
+        XMLLoadPuzzleButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                XMLLoadPuzzleButtonActionPerformed(evt);
+            }
+        });
+        fileMenu.add(XMLLoadPuzzleButton);
 
         menuBar.add(fileMenu);
 
@@ -113,8 +221,8 @@ public class SlideUI extends javax.swing.JFrame
 
     /**
      * This creates a new NewPuzzleWindow.
-     * 
-     * @param evt - unused
+     *
+     * @param evt unused
      */
     private void newPuzzleMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_newPuzzleMenuItemActionPerformed
     {//GEN-HEADEREND:event_newPuzzleMenuItemActionPerformed
@@ -125,13 +233,33 @@ public class SlideUI extends javax.swing.JFrame
 
     /**
      * Undoes a move on the current puzzle.
-     * 
-     * @param evt 
+     *
+     * @param evt
      */
     private void undoMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_undoMenuItemActionPerformed
     {//GEN-HEADEREND:event_undoMenuItemActionPerformed
-        puzPan.undo();
+        puzzlePanel.undo();
     }//GEN-LAST:event_undoMenuItemActionPerformed
+
+    private void XMLSavePuzzleButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_XMLSavePuzzleButtonActionPerformed
+    {//GEN-HEADEREND:event_XMLSavePuzzleButtonActionPerformed
+        new FileSelectWindow(this, "XMLSave").setVisible(true);
+    }//GEN-LAST:event_XMLSavePuzzleButtonActionPerformed
+
+    private void XMLLoadPuzzleButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_XMLLoadPuzzleButtonActionPerformed
+    {//GEN-HEADEREND:event_XMLLoadPuzzleButtonActionPerformed
+        new FileSelectWindow(this, "XMLLoad").setVisible(true);
+    }//GEN-LAST:event_XMLLoadPuzzleButtonActionPerformed
+
+    private void savePuzzleButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_savePuzzleButtonActionPerformed
+    {//GEN-HEADEREND:event_savePuzzleButtonActionPerformed
+        new FileSelectWindow(this, "save").setVisible(true);
+    }//GEN-LAST:event_savePuzzleButtonActionPerformed
+
+    private void loadPuzzleButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_loadPuzzleButtonActionPerformed
+    {//GEN-HEADEREND:event_loadPuzzleButtonActionPerformed
+        new FileSelectWindow(this, "load").setVisible(true);
+    }//GEN-LAST:event_loadPuzzleButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -173,14 +301,20 @@ public class SlideUI extends javax.swing.JFrame
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem XMLLoadPuzzleButton;
+    private javax.swing.JMenuItem XMLSavePuzzleButton;
     private javax.swing.JMenu editMenu;
     private javax.swing.JMenu fileMenu;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JPopupMenu.Separator jSeparator2;
+    private javax.swing.JMenuItem loadPuzzleButton;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem newPuzzleMenuItem;
+    private javax.swing.JMenuItem savePuzzleButton;
     private javax.swing.JMenuItem undoMenuItem;
     // End of variables declaration//GEN-END:variables
     /**
      * The current puzzle.
      */
-    private PuzzlePanel puzPan;
+    private PuzzlePanel puzzlePanel;
 }

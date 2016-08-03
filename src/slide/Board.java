@@ -1,12 +1,13 @@
 package slide;
 
 import java.io.Serializable;
-import java.util.Stack;
+import java.util.ArrayDeque;
 import java.util.Random;
+import java.util.Scanner;
 
 /**
  * This class is a representation of the board and a list of the most recent
- * moves.
+ * turns.
  *
  * @author Griffin
  */
@@ -18,7 +19,7 @@ public class Board implements Serializable
      * allow null to be used for the empty tile. Can be final because of
      * non-transitivity.
      */
-    private final Integer[][] tiles;
+    private Integer[][] tiles;
 
     /**
      * This stack holds move objects after they are executed. This allows them
@@ -26,44 +27,44 @@ public class Board implements Serializable
      * stores a stack of stacks so that one action from the user can encompass
      * several Moves.
      */
-    private Stack<Stack<Move>> moves;
+    private ArrayDeque<ArrayDeque<Move>> turns;
 
     /**
-     * Instantiates a new 2d Integer array for tiles and a new Stack for moves.
+     * Instantiates a new 2d Integer array for tiles and a new Stack for turns.
      * tiles is initialized in its solved state. Use shuffle() to randomize it.
      *
-     * @param width - the width of the board.
-     * @param height - the height of the board.
+     * @param width The width of the board
+     * @param height The height of the board
      */
     public Board(int width, int height)
     {
-        tiles = new Integer[width][height];
+        this.tiles = new Integer[width][height];
         for (int i = 1; i < width * height; ++i)
         {
-            tiles[(i - 1) % width][(i - 1) / width] = i;
+            this.tiles[(i - 1) % width][(i - 1) / width] = i;
         }
-        moves = new Stack<>();
+        this.turns = new ArrayDeque<>();
     }
 
     /**
      * Switches two tiles.
      *
-     * @param move - defines the two tiles being swapped.
+     * @param move Defines the two tiles being swapped
      */
     private void executeMove(Move move)
     {
-        Integer temp = tiles[move.getX1()][move.getY1()];
-        tiles[move.getX1()][move.getY1()] = tiles[move.getX2()][move.getY2()];
-        tiles[move.getX2()][move.getY2()] = temp;
+        Integer temp = this.tiles[move.getX1()][move.getY1()];
+        this.tiles[move.getX1()][move.getY1()] = this.tiles[move.getX2()][move.getY2()];
+        this.tiles[move.getX2()][move.getY2()] = temp;
     }
 
     /**
-     * Executes the moves required to move a group of tiles in the direction of
+     * Executes the turns required to move a group of tiles in the direction of
      * the blank space (the null tile). To work, the position of the blank space
      * and a designated tile are passed in. All the tiles between these two, and
      * the designated tile, move one position toward the blank space and the
      * blank space gets moved to the position of the designated tile. This
-     * entire shift is returned as a stack of moves, to be added to moves, so
+     * entire shift is returned as a stack of turns, to be added to turns, so
      * that this whole move can be undone with only one call to undo(). This
      * method will return an empty stack if the two passed in positions are on a
      * separate row and a separate column or they are the same tile. i.e. The
@@ -73,11 +74,11 @@ public class Board implements Serializable
      * @param y
      * @param blankX
      * @param blankY
-     * @return - A stack of every move performed
+     * @return A stack of every move performed
      */
-    private Stack<Move> multiMove(int x, int y, int blankX, int blankY)
+    private ArrayDeque<Move> multiMove(int x, int y, int blankX, int blankY)
     {
-        Stack<Move> rtnval = new Stack<>();
+        ArrayDeque<Move> rtnval = new ArrayDeque<>();
         if (x == blankX)
         {
             if (y < blankY)
@@ -126,7 +127,7 @@ public class Board implements Serializable
      * tiles on the first row if checkSolvable() returns false. This saves time
      * because the board doesn't have to be shuffled anywhere from one to
      * infinity more times. However, I think swapping instead of re-shuffling
-     * could give the player a slight edge. This method also clears moves,
+     * could give the player a slight edge. This method also clears turns,
      * because this method randomly swaps tiles with executeMove().
      */
     public void shuffle()
@@ -146,21 +147,23 @@ public class Board implements Serializable
                 }
             }
         }
-        //This can throw an exception if the width of the board is less than 3
+        /* This can throw an exception if the width of the board is less than 3.
+         * I put a check in to reshuffle instead of swap if the width is less
+         * than 3, but now it sometimes causes stack overflows. */
         if (!checkSolvable())
         {
-            if (tiles[0][0] == null)
+            if (this.tiles[0][0] == null)
             {
-                if (tiles.length < 3)
+                if (this.tiles.length < 3)
                 {
                     shuffle();
                 } else
                 {
                     executeMove(new Move(1, 0, 2, 0));
                 }
-            } else if (tiles[1][0] == null)
+            } else if (this.tiles[1][0] == null)
             {
-                if (tiles.length < 3)
+                if (this.tiles.length < 3)
                 {
                     shuffle();
                 } else
@@ -172,14 +175,14 @@ public class Board implements Serializable
                 executeMove(new Move(0, 0, 1, 0));
             }
         }
-        moves = new Stack<>();
+        this.turns = new ArrayDeque<>();
     }
 
     /**
-     * Checks the equality of tiles of two Boards. Does not check moves.
+     * Checks the equality of tiles of two Boards. Does not check turns.
      *
-     * @param other - the other board object
-     * @return - true if they are equal, false if not
+     * @param other The other board object
+     * @return True if they are equal, false if not
      */
     @Override
     public boolean equals(Object other)
@@ -227,11 +230,11 @@ public class Board implements Serializable
      * left to right and top to bottom (like how text is read), with the empty
      * space (the null tile) in the bottom right corner.
      *
-     * @return - true if this is in its solved state, false if not
+     * @return True if this is in its solved state, false if not
      */
     public boolean checkSolved()
     {
-        return this.equals(new Board(tiles.length, tiles[0].length));
+        return this.equals(new Board(this.tiles.length, this.tiles[0].length));
     }
 
     /**
@@ -242,54 +245,54 @@ public class Board implements Serializable
      * executed. Also, if a move is made, checkSolved() is called and its result
      * is returned.
      *
-     * @param x - the horizontal index of the tile.
-     * @param y - the vertical index of the tile.
-     * @return - True if a move was made that solved the puzzle, false if not.
+     * @param x The horizontal index of the tile
+     * @param y The vertical index of the tile
+     * @return True if a move was made that solved the puzzle, false if not
      */
     public boolean queryTile(int x, int y)
     {
         boolean rtnbool = false;
-        if (x > 0 && tiles[x - 1][y] == null)
+        if (x > 0 && this.tiles[x - 1][y] == null)
         {
             Move m = new Move(x, y, x - 1, y);
             executeMove(m);
-            Stack<Move> s = new Stack();
+            ArrayDeque<Move> s = new ArrayDeque();
             s.push(m);
-            moves.push(s);
+            this.turns.push(s);
             rtnbool = checkSolved();
-        } else if (y > 0 && tiles[x][y - 1] == null)
+        } else if (y > 0 && this.tiles[x][y - 1] == null)
         {
             Move m = new Move(x, y, x, y - 1);
             executeMove(m);
-            Stack<Move> s = new Stack();
+            ArrayDeque<Move> s = new ArrayDeque();
             s.push(m);
-            moves.push(s);
+            this.turns.push(s);
             rtnbool = checkSolved();
-        } else if (x < tiles.length - 1 && tiles[x + 1][y] == null)
+        } else if (x < this.tiles.length - 1 && this.tiles[x + 1][y] == null)
         {
             Move m = new Move(x, y, x + 1, y);
             executeMove(m);
-            Stack<Move> s = new Stack();
+            ArrayDeque<Move> s = new ArrayDeque();
             s.push(m);
-            moves.push(s);
+            this.turns.push(s);
             rtnbool = checkSolved();
-        } else if (y < tiles[0].length - 1 && tiles[x][y + 1] == null)
+        } else if (y < this.tiles[0].length - 1 && this.tiles[x][y + 1] == null)
         {
             Move m = new Move(x, y, x, y + 1);
             executeMove(m);
-            Stack<Move> s = new Stack();
+            ArrayDeque<Move> s = new ArrayDeque();
             s.push(m);
-            moves.push(s);
+            this.turns.push(s);
             rtnbool = checkSolved();
         } else
         {
             int blankX = -1;
             int blankY = -1;
-            for (int j = 0; j < tiles[0].length; ++j)
+            for (int j = 0; j < this.tiles[0].length; ++j)
             {
-                for (int i = 0; i < tiles.length && blankX == -1; ++i)
+                for (int i = 0; i < this.tiles.length && blankX == -1; ++i)
                 {
-                    if (tiles[i][j] == null)
+                    if (this.tiles[i][j] == null)
                     {
                         blankX = i;
                         blankY = j;
@@ -298,7 +301,7 @@ public class Board implements Serializable
             }
             if ((x == blankX) ^ (y == blankY))
             {
-                moves.push(multiMove(x, y, blankX, blankY));
+                this.turns.push(multiMove(x, y, blankX, blankY));
                 rtnbool = checkSolved();
             }
         }
@@ -306,17 +309,17 @@ public class Board implements Serializable
     }
 
     /**
-     * Executes the move on top of moves. i.e. undoes the most recent move, due
-     * to moves being able to undo themselves. Because executeMoves() is what
-     * pushes moves onto the stack, a move is popped, then pushed back on, and
+     * Executes the move on top of turns. i.e. undoes the most recent move, due
+     * to turns being able to undo themselves. Because executeMoves() is what
+     * pushes turns onto the stack, a move is popped, then pushed back on, and
      * must be popped again.
      */
     public void undo()
     {
-        Stack<Move> undoStack = moves.pop();
-        while (!undoStack.isEmpty())
+        ArrayDeque<Move> undoDeque = this.turns.pop();
+        while (!undoDeque.isEmpty())
         {
-            executeMove(undoStack.pop());
+            executeMove(undoDeque.pop());
         }
     }
 
@@ -331,21 +334,21 @@ public class Board implements Serializable
     public String toString()
     {
         StringBuilder rtnstr = new StringBuilder();
-        int numberWidth = Integer.toString((tiles.length * tiles[0].length) - 1).length();
-        for (int j = 0; j < tiles[0].length; ++j)
+        int numberWidth = Integer.toString((this.tiles.length * this.tiles[0].length) - 1).length();
+        for (int j = 0; j < this.tiles[0].length; ++j)
         {
-            for (int i = 0; i < tiles.length; ++i)
+            for (int i = 0; i < this.tiles.length; ++i)
             {
-                if (tiles[i][j] != null)
+                if (this.tiles[i][j] != null)
                 {
-                    rtnstr.append(String.format("%0" + numberWidth + "d ", tiles[i][j]));
+                    rtnstr.append(String.format("%0" + numberWidth + "d ", this.tiles[i][j]));
                 } else
                 {
                     rtnstr.append(String.format("%" + numberWidth + "s ", " "));
                 }
             }
             //adds a newline after each row execpt after the last row
-            if (j != tiles[0].length - 1)
+            if (j != this.tiles[0].length - 1)
             {
                 rtnstr.append("\n");
             }
@@ -354,37 +357,204 @@ public class Board implements Serializable
     }
 
     /**
+     * Returns a string representation of this board in XML format. The tags
+     * are: board - The board, tiles - The tiles, dimensions - The dimensions of
+     * tiles, row - A row of tiles, turns - The turns, turn - A single turn,
+     * move - One move, x1 - The x1 of a move, y1 - The y1 of a move, x2 - The
+     * x2 of a move, y2 - The y2 of a move
+     *
+     * @return A XML formatted string representation of this board
+     */
+    public String toXML()
+    {
+        StringBuilder strbld = new StringBuilder();
+        strbld.append("<board>\r\n");
+        strbld.append("    <tiles>\r\n");
+        strbld.append("        <dimensions>");
+        strbld.append(this.tiles.length);
+        strbld.append(",");
+        strbld.append(this.tiles[0].length);
+        strbld.append("</dimensions>\r\n");
+        for (int j = 0; j < tiles[0].length; ++j)
+        {
+            strbld.append("        <row>");
+            for (int i = 0; i < this.tiles.length; ++i)
+            {
+                strbld.append(this.tiles[i][j]);
+                if (i < this.tiles.length - 1)
+                {
+                    strbld.append(",");
+                }
+            }
+            strbld.append("</row>\r\n");
+        }
+        strbld.append("    </tiles>\r\n");
+        strbld.append("    <turns>\r\n");
+        ArrayDeque<ArrayDeque<Move>> newTurns = (ArrayDeque<ArrayDeque<Move>>) this.turns.clone();
+        while (!newTurns.isEmpty())
+        {
+            ArrayDeque<Move> moves = newTurns.pop();
+            strbld.append("        <turn>\r\n");
+            while (!moves.isEmpty())
+            {
+                Move move = moves.pop();
+                strbld.append("            <move>\r\n");
+                strbld.append("                <x1>");
+                strbld.append(move.getX1());
+                strbld.append("</x1>\r\n");
+                strbld.append("                <y1>");
+                strbld.append(move.getY1());
+                strbld.append("</y1>\r\n");
+                strbld.append("                <x2>");
+                strbld.append(move.getX2());
+                strbld.append("</x2>\r\n");
+                strbld.append("                <y2>");
+                strbld.append(move.getY2());
+                strbld.append("</y2>\r\n");
+                strbld.append("            </move>\r\n");
+            }
+            strbld.append("        </turn>\r\n");
+        }
+        strbld.append("    </turns>\r\n");
+        strbld.append("</board>");
+        return strbld.toString();
+    }
+
+    /**
+     * Edits the fields of this object based on an XML String.
+     * 
+     * @param input A Scanner scanning an XML formatted string.
+     */
+    public void fromXML(Scanner input)
+    {
+        while (input.hasNext())
+        {
+            if (input.next().equals("board"))
+            {
+                String next = input.next();
+                while (!next.equals("/board"))
+                {
+                    switch (next)
+                    {
+                        case "tiles":
+                            next = input.next();
+                            int rowNum = 0;
+                            while (!next.equals("/tiles"))
+                            {
+                                if (next.equals("dimensions"))
+                                {
+                                    String[] dimensions = input.next().split(",");
+                                    this.tiles = new Integer[Integer.parseInt(dimensions[0])][Integer.parseInt(dimensions[1])];
+                                } else if (next.equals("row"))
+                                {
+                                    String[] numbers = input.next().split(",");
+                                    for (int i = 0; i < numbers.length; ++i)
+                                    {
+                                        if (!numbers[i].equals("null"))
+                                        {
+                                            this.tiles[i][rowNum] = Integer.parseInt(numbers[i]);
+                                        }
+                                    }
+                                    ++rowNum;
+                                }
+                                next = input.next();
+                            }
+                            break;
+                        case "turns":
+                            this.turns = new ArrayDeque();
+                            next = input.next();
+                            while (!next.equals("/turns"))
+                            {
+                                ArrayDeque<Move> moves = null;
+                                if (next.equals("turn"))
+                                {
+                                    moves = new ArrayDeque();
+                                    while (!next.equals("/turn"))
+                                    {
+                                        Move move = null;
+                                        if (next.equals("move"))
+                                        {
+                                            int x1 = -1;
+                                            int y1 = -1;
+                                            int x2 = -1;
+                                            int y2 = -1;
+                                            while (!next.equals("/move"))
+                                            {
+                                                switch (next)
+                                                {
+                                                    case "x1":
+                                                        x1 = Integer.parseInt(input.next());
+                                                        break;
+                                                    case "y1":
+                                                        y1 = Integer.parseInt(input.next());
+                                                        break;
+                                                    case "x2":
+                                                        x2 = Integer.parseInt(input.next());
+                                                        break;
+                                                    case "y2":
+                                                        y2 = Integer.parseInt(input.next());
+                                                        break;
+                                                }
+                                                if (x1 != -1 && y1 != -1 && x2 != -1 && y2 != -1)
+                                                {
+                                                    move = new Move(x1, y1, x2, y2);
+                                                }
+                                                next = input.next();
+                                                if (move != null)
+                                                {
+                                                    moves.addLast(move);
+                                                }
+                                            }
+                                        }
+                                        next = input.next();
+                                    }
+                                }
+                                if (moves != null)
+                                {
+                                    this.turns.addLast(moves);
+                                }
+                                next = input.next();
+                            }
+                            break;
+                    }
+                    next = input.next();
+                }
+            }
+        }
+    }
+
+    /**
      * Checks the solvability of the board using
      * <a href="https://www.cs.bham.ac.uk/~mdr/teaching/modules04/java2/TilesSolvability.html">this
      * method.</a>
      *
-     * @return - true if tiles is solvable, false if not
+     * @return True if tiles is solvable, false if not
      */
     private boolean checkSolvable()
     {
         int inversionCount = 0;
         //blankRow is the row with the blank on it
         int blankRow = -1;
-        for (int j = 0; j < tiles[0].length; ++j)
+        for (int j = 0; j < this.tiles[0].length; ++j)
         {
-            for (int i = 0; i < tiles.length; ++i)
+            for (int i = 0; i < this.tiles.length; ++i)
             {
-                if (tiles[i][j] != null)
+                if (this.tiles[i][j] != null)
                 {
                     //This loop checks the rest of the row tiles[i][j] is on
-                    for (int m = i + 1; m < tiles.length; ++m)
+                    for (int m = i + 1; m < this.tiles.length; ++m)
                     {
-                        if (tiles[m][j] != null && tiles[i][j].compareTo(tiles[m][j]) > 0)
+                        if (this.tiles[m][j] != null && this.tiles[i][j].compareTo(this.tiles[m][j]) > 0)
                         {
                             ++inversionCount;
                         }
                     }
                     //These loops checks all the other rows
-                    for (int n = j + 1; n < tiles[0].length; ++n)
+                    for (int n = j + 1; n < this.tiles[0].length; ++n)
                     {
-                        for (int m = 0; m < tiles.length; ++m)
+                        for (int m = 0; m < this.tiles.length; ++m)
                         {
-                            if (tiles[m][n] != null && tiles[i][j].compareTo(tiles[m][n]) > 0)
+                            if (this.tiles[m][n] != null && this.tiles[i][j].compareTo(this.tiles[m][n]) > 0)
                             {
                                 ++inversionCount;
                             }
@@ -401,7 +571,7 @@ public class Board implements Serializable
         meaning if the blank was on the bottom row, its on the "first" row
         from the bottom. That's okay because the length of an array is 1 more
         than its last index */
-        if (tiles.length % 2 == 0 && (tiles[0].length - blankRow) % 2 == 0)
+        if (this.tiles.length % 2 == 0 && (this.tiles[0].length - blankRow) % 2 == 0)
         {
             rtnbool = inversionCount % 2 == 1;
         } else
@@ -412,17 +582,17 @@ public class Board implements Serializable
     }
 
     /**
-     * Checks if moves is empty.
+     * Checks if turns is empty.
      *
-     * @return - true if moves is empty, false if not.
+     * @return True if turns is empty, false if not.
      */
     public boolean movesEmpty()
     {
-        return moves.empty();
+        return this.turns.isEmpty();
     }
 
     public Integer[][] getTiles()
     {
-        return tiles;
+        return this.tiles;
     }
 }
