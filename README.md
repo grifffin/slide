@@ -8,7 +8,7 @@ Make moves by pressing the buttons.
 Undo moves with Edit, Undo.
 
 Games are seriazable as XML files or files with extension .sld (made up extension for byte serialization).
-Not only is the board saved, but the recent moves are too. This allows for functionality after saving and
+Not only is the board saved, but the recent moves are too. This allows for the user to undo after saving and
 reloading a game.
 To save a game, click File, Save Puzzle to .sld or File, Save Puzzle to XML.
 Games can be loaded at any time from the file menu. Warning, this overwrites the current game.
