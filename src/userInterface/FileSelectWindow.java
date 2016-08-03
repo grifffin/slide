@@ -89,23 +89,27 @@ public class FileSelectWindow extends javax.swing.JFrame
      */
     private void jFileChooserActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jFileChooserActionPerformed
     {//GEN-HEADEREND:event_jFileChooserActionPerformed
+        System.out.println(evt.getActionCommand());
         File file = jFileChooser.getSelectedFile();
-        switch (this.purpose)
+        if(evt.getActionCommand().equals("ApproveSelection"))
         {
-            case "XMLSave":
-                file = new File(file.toString() + ".xml");
-                this.slideUI.XMLSave(file);
-                break;
-            case "XMLLoad":
-                this.slideUI.XMLLoad(file);
-                break;
-            case "save":
-                file = new File(file.toString() + ".sld");
-                this.slideUI.save(file);
-                break;
-            case "load":
-                this.slideUI.load(file);
-                break;
+            switch (this.purpose)
+            {
+                case "XMLSave":
+                    file = new File(file.toString() + ".xml");
+                    this.slideUI.XMLSave(file);
+                    break;
+                case "XMLLoad":
+                    this.slideUI.XMLLoad(file);
+                    break;
+                case "save":
+                    file = new File(file.toString() + ".sld");
+                    this.slideUI.save(file);
+                    break;
+                case "load":
+                    this.slideUI.load(file);
+                    break;
+            }
         }
         setVisible(false);
         dispose();
